@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultado - Amigo Secreto 2024</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="content-container">
+        <h1>Resultado do Amigo Secreto</h1>
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <ul class="flashes">
+                    {% for message in messages %}
+                        <li>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+        
+        <form id="revealForm">
+            <input type="text" id="revealName" name="name" placeholder="Seu Nome" required>
+            <input type="password" id="revealPassword" name="password" placeholder="Sua Senha" required>
+            <button type="submit">Ver Meu Amigo Secreto</button>
+        </form>
+        
+        <div id="result"></div>
+        
+        <div id="adminSection">
+            <h3>Área do Administrador</h3>
+            <form id="adminForm">
+                <input type="text" id="adminName" name="name" placeholder="Nome do Administrador" required>
+                <input type="password" id="adminPassword" name="password" placeholder="Senha do Administrador" required>
+                <button type="submit">Ver Todos os Resultados</button>
+            </form>
+            <div id="adminResults"></div>
+        </div>
+        
+        <a href="{{ url_for('home') }}" class="button">Voltar para o Início</a>
+    </div>
+
+    <script>
+        document.getElementById('revealForm').onsubmit = function(e) {
+            e.preventDefault();
+            fetch('/reveal', {
+                method: 'POST',
+                body: new FormData(this),
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    document.getElementById('result').textContent = data.error;
+                } else {
+                    document.getElementById('result').textContent = `Seu amigo secreto é: ${data.result}`;
+                }
+            });
+        };
+
+        document.getElementById('adminForm').onsubmit = function(e) {
+            e.preventDefault();
+            fetch('/admin_results', {
+                method: 'POST',
+                body: new FormData(this),
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    document.getElementById('adminResults').textContent = data.error;
+                } else {
+                    let resultHtml = '<h4>Resultados Completos:</h4><ul>';
+                    for (let [giver, receiver] of Object.entries(data)) {
+                        resultHtml += `<li>${giver} tirou ${receiver}</li>`;
+                    }
+                    resultHtml += '</ul>';
+                    document.getElementById('adminResults').innerHTML = resultHtml;
+                }
+            });
+        };
+    </script>
+</body>
+</html>
