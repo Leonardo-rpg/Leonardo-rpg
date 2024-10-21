@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amigo Secreto 2024</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="content-container">
+        <h1>Amigo Secreto 2024</h1>
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <ul class="flashes">
+                    {% for message in messages %}
+                        <li>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+        <form id="participantForm" method="POST">
+            <input type="text" name="name" placeholder="Seu Nome" required>
+            <input type="password" name="password" placeholder="Sua Senha" required>
+            <button type="submit">Participar</button>
+        </form>
+        
+        <h2>Participantes</h2>
+        <ul id="participantList"></ul>
+        
+        <a href="{{ url_for('draw') }}" class="button">Realizar Sorteio</a>
+        <a href="{{ url_for('reset') }}" class="button">Reiniciar Sorteio</a>
+    </div>
+
+    <script>
+        function updateParticipantList() {
+            fetch('/participants')
+                .then(response => response.json())
+                .then(participants => {
+                    const list = document.getElementById('participantList');
+                    list.innerHTML = '';
+                    participants.forEach(name => {
+                        const li = document.createElement('li');
+                        li.textContent = name;
+                        list.appendChild(li);
+                    });
+                });
+        }
+
+        document.getElementById('participantForm').onsubmit = function(e) {
+            e.preventDefault();
+            fetch('/', {
+                method: 'POST',
+                body: new FormData(this),
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            }).then(response => {
+                if (response.ok) {
+                    this.reset();
+                    updateParticipantList();
+                    location.reload();
+                }
+            });
+        };
+
+        updateParticipantList();
+    </script>
+</body>
+</html>
